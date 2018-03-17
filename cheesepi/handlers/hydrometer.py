@@ -1,33 +1,32 @@
 from datetime import datetime
-import random
+import logging
 
+from tornado_sqlalchemy import SessionMixin
+
+from cheesepi.models.SensorData import SensorData
 from .base import BaseHandler
+from settings import settings
 
-cutoff = 6
-
-times = []
-hums = []
-temps = []
-
-
-class HydrometerHandler(BaseHandler):
-    async def get(self):
+class HydrometerHandler(BaseHandler, SessionMixin):
+    def get(self):
         """
-        Get last 6 measurements
+        Get last few to update page measurements
         """
-        last = int(self.get_argument("last", 1))
-        time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        hum = random.uniform(0.0, 100.0)
-        temp = random.uniform(-40.0, 40.0)
-        global times
-        global hums
-        global temps
-        times = times[-10:] + [time]
-        hums = hums[-10:] + [hum]
-        temps = temps[-10:] + [temp]
-        table = {
-            'x': times[-last:],
-            'Humidity': hums[-last:],
-            'Temperature': temps[-last:],
-        }
-        self.write(table)
+        last = self.get_argument("last", None)
+        if last is not None:
+            try:
+                last = datetime.strptime(last, settings['hydrometer_timeformat'])
+            except ValueError as e:
+                logging.exception(e)
+                last = None
+        with self.make_session() as session:
+            query = session.query(SensorData)
+            if last is not None:
+                query = query.filter(SensorData.timestamp > last)
+            data = query.order_by(SensorData.timestamp.desc()).limit(settings['hydrometer_points']).all()[::-1]
+            table = {
+                'x': [i.timestamp.strftime(settings['hydrometer_timeformat']) for i in data],
+                'Humidity': [i.humidity for i in data],
+                'Temperature': [i.temperature for i in data],
+            }
+            self.write(table)

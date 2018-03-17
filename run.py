@@ -9,10 +9,12 @@ import tornado.options
 import tornado.web
 import tornado.autoreload
 from tornado.options import options
-import tornado.web
+from tornado_sqlalchemy import make_session_factory
 
 from settings import settings
 from cheesepi.urls import url_patterns
+from cheesepi.handlers import hardware_io
+from cheesepi.models.base import Base
 
 
 class TornadoApplication(tornado.web.Application):
@@ -22,6 +24,10 @@ class TornadoApplication(tornado.web.Application):
 
 
 def main():
+    session_factory = make_session_factory(settings['dbname'])
+    Base.metadata.create_all(session_factory._engine)
+    tornado.ioloop.IOLoop.current().spawn_callback(hardware_io.hydrometer_pooling_timer, session_factory)
+    settings['session_factory'] = session_factory
     app = TornadoApplication()
     app.listen(options.port)
     tornado.ioloop.IOLoop.current().start()

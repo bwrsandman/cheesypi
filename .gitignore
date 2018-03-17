@@ -18,3 +18,5 @@ dist
 .vagrant
 .bash_history
 venv/
+*.sqlite
+*.db
