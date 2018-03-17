@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from .handlers import base
+from .handlers import (
+    index,
+    hydrometer,
+)
 
 
 url_patterns = [
-    (r"/", base.MainHandler),
+    (r"/", index.MainHandler),
+    (r"/hydrometer_chart", hydrometer.HydrometerHandler),
 ]

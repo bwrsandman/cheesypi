@@ -40,7 +40,8 @@ tests_require = [
     'pytest-cov',
     # for pytest-runner to work, it is important that pytest comes last in
     # this list: https://github.com/pytest-dev/pytest-runner/issues/11
-    'pytest'
+    'pytest',
+    'pygments',
 ]
 
 version = '0.1.0'
@@ -55,7 +56,6 @@ setup(name='cheesepi',
       classifiers=[c.strip() for c in classifiers.splitlines()
                    if c.strip() and not c.startswith('#')],
       include_package_data=True,
-      classifiers=[],
       packages=[
           'cheesepi',
           ],

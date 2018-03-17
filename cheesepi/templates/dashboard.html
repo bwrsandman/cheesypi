@@ -1,0 +1,27 @@
+{% block scripting %}
+<!-- Load c3.css -->
+<link href="{{static_url('c3-0.4.21/c3.min.css')}}" rel="stylesheet"/>
+
+<!-- Load d3.js and c3.js -->
+<script type="text/javascript" src="{{static_url('d3-3.5.17/d3.min.js')}}" charset="utf-8"></script>
+<script type="text/javascript" src="{{static_url('c3-0.4.21/c3.js')}}"></script>
+{% end %}
+
+<table>
+    <tr>
+        <td>
+            <div class="power-button">
+                <button type="button" class={{"power-on" if power_status else "power-off"}}>{{ "ON" if power_status else "OFF" }}</button>
+            </div>
+        </td>
+        <td>
+            {{ target_temperature }}°C
+        </td>
+        <td>
+            {{ target_humidity }}%
+        </td>
+    </tr>
+</table>
+<div id="hydrometer-chart"></div>
+
+<script type="text/javascript" src="{{static_url('hydrometer_chart.js')}}"></script>
