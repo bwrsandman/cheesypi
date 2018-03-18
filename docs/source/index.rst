@@ -1,9 +1,9 @@
-.. cheesepi documentation master file, created by
+.. cheesypi documentation master file, created by
    sphinx-quickstart on Fri Aug 26 11:29:39 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to cheesepi's documentation!
+Welcome to cheesypi's documentation!
 ===========================================================
 
 Contents:

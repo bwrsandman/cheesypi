@@ -3,7 +3,7 @@ import logging
 
 from tornado_sqlalchemy import SessionMixin
 
-from cheesepi.models.SensorData import SensorData
+from cheesypi.models.SensorData import SensorData
 from .base import BaseHandler
 from settings import settings
 

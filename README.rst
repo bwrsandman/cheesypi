@@ -1,4 +1,4 @@
-cheesepi
+CheesyPi
 ========
 
 Control panel for intelligent fridge used to age cheese.

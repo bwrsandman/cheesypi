@@ -14,7 +14,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-exec(open('cheesepi/version.py').read())
+exec(open('cheesypi/version.py').read())
 
 classifiers = """
 'Development Status :: 2 - Alpha',
@@ -46,18 +46,18 @@ tests_require = [
 
 version = '0.1.0'
 
-setup(name='cheesepi',
+setup(name='cheesypi',
       version=__version__,
       description='Control panel for intelligent fridge used to age cheese.',
       long_description=read('README.rst'),
       author='Sandy Carter',
       author_email='bwrsandman@gmail.com',
-      url='https://github.com/bwrsandman/cheesepi',
+      url='https://github.com/bwrsandman/cheesypi',
       classifiers=[c.strip() for c in classifiers.splitlines()
                    if c.strip() and not c.startswith('#')],
       include_package_data=True,
       packages=[
-          'cheesepi',
+          'cheesypi',
           ],
       test_suite='tests',
       setup_requires=['pytest-runner'],

@@ -5,14 +5,14 @@
 import os.path
 
 from tornado.options import define
-from cheesepi.handlers.page_not_found import PageNotFoundHandler
+from cheesypi.handlers.page_not_found import PageNotFoundHandler
 
 
 define("port", default=8000, help="run on the given port", type=int)
 define("config", default=None, help="tornado config file")
 define("debug", default=True, help="debug mode")
 
-__BASE_PACKAGE__ = "cheesepi"
+__BASE_PACKAGE__ = "cheesypi"
 
 settings = {}
 

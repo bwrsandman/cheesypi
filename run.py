@@ -12,9 +12,9 @@ from tornado.options import options
 from tornado_sqlalchemy import make_session_factory
 
 from settings import settings
-from cheesepi.urls import url_patterns
-from cheesepi.handlers import hardware_io
-from cheesepi.models.base import Base
+from cheesypi.urls import url_patterns
+from cheesypi.handlers import hardware_io
+from cheesypi.models.base import Base
 
 
 class TornadoApplication(tornado.web.Application):
