@@ -7,6 +7,7 @@ import datetime
 
 from tornado.options import define
 from cheesypi.handlers.page_not_found import PageNotFoundHandler
+from Adafruit_DHT import DHT11
 
 
 define("port", default=8000, help="run on the given port", type=int)
@@ -27,5 +28,7 @@ settings['default_handler_class'] = PageNotFoundHandler
 settings['default_handler_args'] = dict(status_code=404)
 settings['hyrdometer_refresh_delay'] = datetime.timedelta(minutes=1)
 settings['hydrometer_points'] = 50
+settings['hydrometer_DHT_version'] = DHT11
+settings['hydrometer_data_pin'] = 22
 settings['hydrometer_timeformat'] = "%Y-%m-%d %H:%M:%S"
 settings['dbname'] = 'sqlite:///default.sqlite'

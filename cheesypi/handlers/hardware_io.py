@@ -2,6 +2,7 @@ import random
 from datetime import datetime
 
 import tornado
+import Adafruit_DHT
 
 from tornado.gen import coroutine
 from tornado.log import app_log
@@ -29,8 +30,10 @@ class HydrometerPooler(SessionMixin):
     @tornado.gen.coroutine
     def pool_hydrometer(self):
         time = datetime.utcnow().replace(microsecond=0)
-        hum = random.uniform(0.0, 100.0)
-        temp = random.uniform(-40.0, 40.0)
+        hum, temp = Adafruit_DHT.read_retry(
+            settings["hydrometer_DHT_version"],
+            settings["hydrometer_data_pin"]
+        )
         with self.make_session() as session:
             data = SensorData(timestamp=time, temperature=temp, humidity=hum)
             yield session.add(data)
