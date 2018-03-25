@@ -3,6 +3,7 @@
 """Global settings for the project"""
 
 import os.path
+import datetime
 
 from tornado.options import define
 from cheesypi.handlers.page_not_found import PageNotFoundHandler
@@ -24,7 +25,7 @@ settings["template_path"] = os.path.join(os.path.dirname(__file__), __BASE_PACKA
 settings["xsrf_cookies"] = False
 settings['default_handler_class'] = PageNotFoundHandler
 settings['default_handler_args'] = dict(status_code=404)
-settings['hyrdometer_refresh_delay'] = 5
+settings['hyrdometer_refresh_delay'] = datetime.timedelta(minutes=1)
 settings['hydrometer_points'] = 50
 settings['hydrometer_timeformat'] = "%Y-%m-%d %H:%M:%S"
 settings['dbname'] = 'sqlite:///default.sqlite'

@@ -2,17 +2,22 @@ import random
 from datetime import datetime
 
 import tornado
-from tornado.gen import coroutine
 
-from settings import settings
+from tornado.gen import coroutine
+from tornado.log import app_log
 from tornado_sqlalchemy import (
     SessionMixin,
 )
 
+from settings import settings
 from ..models.SensorData import SensorData
 
 
 class DummyApplication(object):
+    """Tornado_sqlalchemy needs a session factory from an Application to work
+    properly. Since we want this to run separately from a web application, we
+    Create a dummy application which stores and returns a session factory.
+    """
     def __init__(self, session_factory):
         self.settings = {'session_factory': session_factory}
 
@@ -22,7 +27,7 @@ class HydrometerPooler(SessionMixin):
         self.application = DummyApplication(session_factory)
 
     @tornado.gen.coroutine
-    def do_something(self):
+    def pool_hydrometer(self):
         time = datetime.utcnow().replace(microsecond=0)
         hum = random.uniform(0.0, 100.0)
         temp = random.uniform(-40.0, 40.0)
@@ -36,6 +41,9 @@ class HydrometerPooler(SessionMixin):
 def hydrometer_pooling_timer(session_factory):
     pooler = HydrometerPooler(session_factory)
     while True:
-        nxt = tornado.gen.sleep(settings['hyrdometer_refresh_delay'])   # Start the clock.
-        yield pooler.do_something()  # Run while the clock is ticking.
-        yield nxt             # Wait for the timer to run out.
+        try:
+            nxt = tornado.gen.sleep(settings['hyrdometer_refresh_delay'].total_seconds())
+            yield pooler.pool_hydrometer()  # Run while the clock is ticking.
+            yield nxt             # Wait for the timer to run out.
+        except Exception as e:
+            app_log.exception(e)
