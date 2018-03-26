@@ -13,7 +13,11 @@ from tornado_sqlalchemy import make_session_factory
 
 from settings import settings
 from cheesypi.urls import url_patterns
-from cheesypi.handlers import hardware_io
+from cheesypi.handlers.hardware_io import (
+    hardware_io_loop,
+    HydrometerPooler,
+    RelayController,
+)
 from cheesypi.models.base import Base
 
 
@@ -26,7 +30,8 @@ class TornadoApplication(tornado.web.Application):
 def main():
     session_factory = make_session_factory(settings['dbname'])
     Base.metadata.create_all(session_factory._engine)
-    tornado.ioloop.IOLoop.current().spawn_callback(hardware_io.hydrometer_pooling_timer, session_factory)
+    for HardwareIoClass in (HydrometerPooler, RelayController):
+        tornado.ioloop.IOLoop.current().spawn_callback(hardware_io_loop, HardwareIoClass, session_factory)
     settings['session_factory'] = session_factory
     app = TornadoApplication()
     app.listen(options.port)
