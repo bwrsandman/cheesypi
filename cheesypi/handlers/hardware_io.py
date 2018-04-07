@@ -93,7 +93,6 @@ class RelayController(HardwareIO):
         return ret
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.mark_event("POWEROFF")
         GPIO.cleanup()
         return super(RelayController, self).__exit__(exc_type, exc_value, traceback)
 

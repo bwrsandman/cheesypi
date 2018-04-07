@@ -11,14 +11,14 @@
     <tr>
         <td>
             <div class="power-button">
-                <button type="button" class={{"power-on" if power_status else "power-off"}}>{{ "ON" if power_status else "OFF" }}</button>
+                <button type="button" class={{ button_class }}>{{ button_label }}</button>
             </div>
         </td>
         <td>
-            {{ target_temperature }}°C
+            <div class="temperature-label">{{ last_temperature }}°C</div>
         </td>
         <td>
-            {{ target_humidity }}%
+            <div class="humidity-label"> {{ last_humidity }}%</div>
         </td>
     </tr>
 </table>
