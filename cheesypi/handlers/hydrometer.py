@@ -20,7 +20,8 @@ class HydrometerHandler(BaseHandler, SessionMixin):
                 logging.exception(e)
                 last = None
         with self.make_session() as session:
-            query = session.query(SensorData)
+            min_date = datetime.utcnow() - settings["hydrometer_time_window"]
+            query = session.query(SensorData).filter(SensorData.timestamp > min_date)
             if last is not None:
                 query = query.filter(SensorData.timestamp > last)
             data = query.order_by(SensorData.timestamp.desc()).limit(settings['hydrometer_points']).all()[::-1]
