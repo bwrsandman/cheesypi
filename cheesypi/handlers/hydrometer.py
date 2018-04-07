@@ -4,6 +4,8 @@ import logging
 from tornado_sqlalchemy import SessionMixin
 
 from cheesypi.models.SensorData import SensorData
+from cheesypi.models.Event import Event
+
 from .base import BaseHandler
 from settings import settings
 
@@ -19,19 +21,45 @@ class HydrometerHandler(BaseHandler, SessionMixin):
             except ValueError as e:
                 logging.exception(e)
                 last = None
+
         with self.make_session() as session:
             min_date = datetime.utcnow() - settings["hydrometer_time_window"]
-            query = session.query(SensorData).filter(SensorData.timestamp > min_date)
+
+            sensor_query = session.query(SensorData).filter(
+                SensorData.timestamp > min_date
+            )
             if last is not None:
-                query = query.filter(SensorData.timestamp > last)
-            data = query.order_by(SensorData.timestamp.desc()).limit(settings['hydrometer_points']).all()[::-1]
+                sensor_query = sensor_query.filter(SensorData.timestamp > last)
+            sensor_query = sensor_query.order_by(SensorData.timestamp.desc())
+            sensor_data = sensor_query.limit(settings['hydrometer_points']).all()[::-1]
+
+            event_query = session.query(Event).filter(
+                Event.timestamp > min_date
+            )
+            event_query = event_query.order_by(Event.timestamp.desc())
+            event_data = event_query.limit(settings['hydrometer_points']).all()[::-1]
+
             table = {
                 "data": {
-                    'x': [i.timestamp.strftime(settings['hydrometer_timeformat']) for i in data],
-                    'Humidity': [i.humidity for i in data],
-                    'Temperature': [i.temperature for i in data],
+                    'x': [
+                        i.timestamp.strftime(settings['hydrometer_timeformat'])
+                        for i in sensor_data
+                    ],
+                    'Humidity': [i.humidity for i in sensor_data],
+                    'Temperature': [i.temperature for i in sensor_data],
                 },
                 "grid": {
+                    "x": {
+                        "lines": [
+                            {
+                                "value": i.timestamp.strftime(
+                                    settings['hydrometer_timeformat']
+                                ),
+                                "text": i.type_,
+                            }
+                            for i in event_data
+                        ],
+                    },
                     "y": {
                         "lines": [
                             {

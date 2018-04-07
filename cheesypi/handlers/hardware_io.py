@@ -13,6 +13,7 @@ from tornado_sqlalchemy import (
 
 from settings import settings
 from ..models.SensorData import SensorData
+from ..models.Event import Event
 
 
 class DummyApplication(object):
@@ -82,14 +83,17 @@ class RelayController(HardwareIO):
     def __init__(self, *args, **kwargs):
         super(RelayController, self).__init__(*args, **kwargs)
         self.channel = settings["relay_gpio_channel"]
+        self.active = False
 
     def __enter__(self):
         ret = super(RelayController, self).__enter__()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.channel, GPIO.OUT)
+        self.mark_event("POWERON")
         return ret
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self.mark_event("POWEROFF")
         GPIO.cleanup()
         return super(RelayController, self).__exit__(exc_type, exc_value, traceback)
 
@@ -97,15 +101,32 @@ class RelayController(HardwareIO):
     def delay(self):
         return settings['relay_refresh_delay']
 
+    def mark_event(self, type_):
+        with self.make_session() as session:
+            time = datetime.utcnow().replace(microsecond=0)
+            event = Event(timestamp=time, type_=type_)
+            session.add(event)
+            session.commit()
+
     @coroutine
     def activate(self):
-        GPIO.output(self.channel, True)
-        yield
+        if not self.active:
+            app_log.debug("Activating switch")
+            self.active = True
+            GPIO.output(self.channel, self.active)
+            yield self.mark_event("ACTIVATE")
+        else:
+            yield
 
     @coroutine
     def deactivate(self):
-        GPIO.output(self.channel, False)
-        yield
+        if self.active:
+            app_log.debug("Deactivating switch")
+            self.active = False
+            GPIO.output(self.channel, self.active)
+            yield self.mark_event("DEACTIVATE")
+        else:
+            yield
 
 
     @coroutine
