@@ -129,7 +129,7 @@ class RelayController(HardwareIO):
             elif temp > high_threshold:
                 app_log.debug(
                     "Last temperature measured higher than high threshold value "
-                    "(%.2f < %.2f)" % (temp, low_threshold)
+                    "(%.2f < %.2f)" % (temp, high_threshold)
                 )
                 yield self.activate()
 
