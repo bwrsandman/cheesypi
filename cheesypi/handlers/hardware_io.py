@@ -12,6 +12,7 @@ from tornado_sqlalchemy import (
 )
 
 from settings import settings
+from ..models.Sensor import Sensor
 from ..models.SensorData import SensorData
 from ..models.Event import Event
 
@@ -52,6 +53,23 @@ class HardwareIO(SessionMixin):
 class HydrometerPooler(HardwareIO):
     """Pool hydrometer on a GPIO port for temperature and humidity
     Add those values and their timestamp to databse"""
+    def __init__(self, *args, **kwargs):
+        super(HydrometerPooler, self).__init__(*args, **kwargs)
+        self.sensors = settings["hydrometer_sensors"]
+        with self.make_session() as session:
+            sensor_ids = set(i[0] for i in session.query(Sensor.id).all())
+            missing_sensors = set(range(len(self.sensors))) - sensor_ids
+            for sensor_id in missing_sensors:
+                new_sensor = Sensor(
+                    id=sensor_id,
+                    name=self.sensors[sensor_id].name,
+                    pin=self.sensors[sensor_id].data_pin,
+                    version=self.sensors[sensor_id].DHT_version,
+                )
+                app_log.debug("Adding new sensor %s" % new_sensor)
+                session.add(new_sensor)
+            session.commit()
+
     @property
     def delay(self):
         return settings['hyrdometer_refresh_delay']
@@ -59,21 +77,27 @@ class HydrometerPooler(HardwareIO):
     @coroutine
     def execute(self):
         time = datetime.utcnow().replace(microsecond=0)
-        hum, temp = Adafruit_DHT.read_retry(
-            settings["hydrometer_DHT_version"],
-            settings["hydrometer_data_pin"]
-        )
-        app_log.debug(
-            "Hydrometer measured %.2f degrees and %.2f%% humidity" %
-            (temp, hum)
-        )
-        if (settings["humidity_acceptable_values"].low > hum or
-                settings["humidity_acceptable_values"].high < hum):
-            app_log.warn("Measured impossible humidity (%f), discarding" % hum)
-            return
         with self.make_session() as session:
-            data = SensorData(timestamp=time, temperature=temp, humidity=hum)
-            yield session.add(data)
+            for sensor_id, sensor in enumerate(self.sensors):
+                hum, temp = Adafruit_DHT.read_retry(
+                    sensor.DHT_version,
+                    sensor.data_pin,
+                )
+                app_log.debug(
+                    "%s measured %.2f degrees and %.2f%% humidity" %
+                    (sensor.name, temp, hum)
+                )
+                if (settings["humidity_acceptable_values"].low > hum or
+                        settings["humidity_acceptable_values"].high < hum):
+                    app_log.warn("Measured impossible humidity (%f), discarding" % hum)
+                    continue
+                data = SensorData(
+                    sensor_id=sensor_id,
+                    timestamp=time,
+                    temperature=temp,
+                    humidity=hum,
+                )
+                yield session.add(data)
             session.commit()
 
 
@@ -135,7 +159,9 @@ class RelayController(HardwareIO):
         assert(high_threshold > low_threshold)
         temp = None
         with self.make_session() as session:
-            data = session.query(SensorData).order_by(SensorData.timestamp.desc()).first()
+            data_query = session.query(SensorData)
+            data_query = data_query.filter(SensorData.sensor_id == settings['hydrometer_master'])
+            data = data_query.order_by(SensorData.timestamp.desc()).first()
             if data is not None:
                 temp = data.temperature
             yield

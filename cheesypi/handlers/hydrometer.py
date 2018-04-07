@@ -31,6 +31,8 @@ class HydrometerHandler(BaseHandler, SessionMixin):
 
             sensor_query = session.query(SensorData).filter(
                 SensorData.timestamp > min_date
+            ).filter(
+                SensorData.sensor_id == settings['hydrometer_master']
             )
             if last is not None:
                 sensor_query = sensor_query.filter(SensorData.timestamp > last)

@@ -12,6 +12,13 @@ class Sensor(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    pin = Column(Integer)
+    version = Column(Integer)
 
     def __repr__(self):
-        return "<Sensor (id: %d, name: %s)>" % (self.id, self.name)
+        return "<Sensor (id: %d, name: %s, pin: %d, version: %d)>" % (
+            self.id,
+            self.name,
+            self.pin,
+            self.version,
+        )

@@ -9,9 +9,10 @@ import logging
 
 from tornado.options import define
 from cheesypi.handlers.page_not_found import PageNotFoundHandler
-from Adafruit_DHT import DHT11
+from Adafruit_DHT import DHT22
 
 Threshold = collections.namedtuple('Threshold', ['low', 'high'])
+SensorConfig = collections.namedtuple('SensorConfig', ['name', 'DHT_version', 'data_pin'])
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -37,8 +38,10 @@ settings['relay_gpio_channel'] = 11  # pin 17
 settings['hyrdometer_refresh_delay'] = datetime.timedelta(minutes=1)
 settings['hydrometer_points'] = 50
 settings['hydrometer_time_window'] = datetime.timedelta(hours=6)
-settings['hydrometer_DHT_version'] = DHT11
-settings['hydrometer_data_pin'] = 22
+settings['hydrometer_sensors'] = [
+    SensorConfig(name="Hydrometer0", DHT_version=DHT22, data_pin=22),
+]
+settings['hydrometer_master'] = 0
 settings['hydrometer_timeformat'] = "%Y-%m-%d %H:%M:%S"
 settings['humidity_acceptable_values'] = Threshold(low=0, high=300)
 settings['dbname'] = 'sqlite:///default.sqlite'
