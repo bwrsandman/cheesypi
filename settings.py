@@ -11,7 +11,7 @@ from tornado.options import define
 from cheesypi.handlers.page_not_found import PageNotFoundHandler
 from Adafruit_DHT import DHT11
 
-TempThreshold = collections.namedtuple('TempThreshold', ['low', 'high'])
+Threshold = collections.namedtuple('Threshold', ['low', 'high'])
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -31,7 +31,7 @@ settings["template_path"] = os.path.join(os.path.dirname(__file__), __BASE_PACKA
 settings["xsrf_cookies"] = False
 settings['default_handler_class'] = PageNotFoundHandler
 settings['default_handler_args'] = dict(status_code=404)
-settings['temperature_thresholds'] = TempThreshold(low=6, high=8)
+settings['temperature_thresholds'] = Threshold(low=7, high=8)
 settings['relay_refresh_delay'] = datetime.timedelta(seconds=15)
 settings['relay_gpio_channel'] = 11  # pin 17
 settings['hyrdometer_refresh_delay'] = datetime.timedelta(minutes=1)
@@ -39,4 +39,5 @@ settings['hydrometer_points'] = 50
 settings['hydrometer_DHT_version'] = DHT11
 settings['hydrometer_data_pin'] = 22
 settings['hydrometer_timeformat'] = "%Y-%m-%d %H:%M:%S"
+settings['humidity_acceptable_values'] = Threshold(low=0, high=300)
 settings['dbname'] = 'sqlite:///default.sqlite'

@@ -62,6 +62,14 @@ class HydrometerPooler(HardwareIO):
             settings["hydrometer_DHT_version"],
             settings["hydrometer_data_pin"]
         )
+        app_log.debug(
+            "Hydrometer measured %.2f degrees and %.2f%% humidity" %
+            (temp, hum)
+        )
+        if (settings["humidity_acceptable_values"].low > hum or
+                settings["humidity_acceptable_values"].high < hum):
+            app_log.warn("Measured impossible humidity (%f), discarding" % hum)
+            return
         with self.make_session() as session:
             data = SensorData(timestamp=time, temperature=temp, humidity=hum)
             yield session.add(data)
