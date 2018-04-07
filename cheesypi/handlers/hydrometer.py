@@ -25,8 +25,30 @@ class HydrometerHandler(BaseHandler, SessionMixin):
                 query = query.filter(SensorData.timestamp > last)
             data = query.order_by(SensorData.timestamp.desc()).limit(settings['hydrometer_points']).all()[::-1]
             table = {
-                'x': [i.timestamp.strftime(settings['hydrometer_timeformat']) for i in data],
-                'Humidity': [i.humidity for i in data],
-                'Temperature': [i.temperature for i in data],
+                "data": {
+                    'x': [i.timestamp.strftime(settings['hydrometer_timeformat']) for i in data],
+                    'Humidity': [i.humidity for i in data],
+                    'Temperature': [i.temperature for i in data],
+                },
+                "grid": {
+                    "y": {
+                        "lines": [
+                            {
+                                "value": settings["temperature_thresholds"].low,
+                                "text": "Low threshold",
+                                "axis": "y",
+                                "position": "middle",
+                                "color": "blue",
+                            },
+                            {
+                                "value": settings["temperature_thresholds"].high,
+                                "text": "High threshold",
+                                "axis": "y",
+                                "position": "middle",
+                                "color": "red",
+                            },
+                        ],
+                    },
+                },
             }
             self.write(table)

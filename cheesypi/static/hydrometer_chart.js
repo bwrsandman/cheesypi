@@ -20,7 +20,7 @@ xmlHttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200)
     {
         initialJson = JSON.parse(this.responseText);
-        lastDateTime = jsonResponse.x.sort()[jsonResponse.x.length - 1];
+        lastDateTime = initialJson.data.x.sort()[initialJson.data.x.length - 1];
     }
 }
 xmlHttp.open("GET", "/hydrometer_chart?pageload=1", false);
@@ -30,7 +30,7 @@ var chart = c3.generate({
     bindto: '#hydrometer-chart',
     data: {
         x: 'x',
-        json: initialJson,
+        json: initialJson.data,
         xFormat: '%Y-%m-%d %H:%M:%S',
         axes: {
             Humidity: 'y2'
@@ -54,7 +54,8 @@ var chart = c3.generate({
             show: true,
             label: '% Humidity'
         }
-    }
+    },
+    grid: initialJson.grid
 });
 
 setInterval(function () {
@@ -63,10 +64,10 @@ setInterval(function () {
         if (this.readyState == 4 && this.status == 200)
         {
             var jsonResponse = JSON.parse(this.responseText);
-            if (jsonResponse.x.length > 0) {
-                lastDateTime = jsonResponse.x.sort()[jsonResponse.x.length - 1];
+            if (jsonResponse.data.x.length > 0) {
+                lastDateTime = jsonResponse.data.x.sort()[jsonResponse.data.x.length - 1];
                 chart.flow({
-                    json: JSON.parse(this.responseText),
+                    json: jsonResponse.data,
                     duration: transitionDuration,
                 });
             }
