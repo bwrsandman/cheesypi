@@ -1,7 +1,7 @@
 from datetime import datetime
-import logging
 
 from tornado.options import options
+from tornado.log import app_log
 from tornado_sqlalchemy import SessionMixin
 
 from cheesypi.models.SensorData import SensorData
@@ -24,7 +24,7 @@ class HydrometerHandler(BaseHandler, SessionMixin):
             try:
                 last = datetime.strptime(last, settings['hydrometer_timeformat'])
             except ValueError as e:
-                logging.exception(e)
+                app_log.exception(e)
                 last = None
 
         with self.make_session() as session:
