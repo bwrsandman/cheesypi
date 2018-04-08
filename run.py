@@ -3,6 +3,7 @@
 
 """Basic run script"""
 
+import sys
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -27,8 +28,9 @@ class TornadoApplication(tornado.web.Application):
         tornado.web.Application.__init__(self, url_patterns, **settings)
 
 
-def main():
-    session_factory = make_session_factory(settings['dbname'])
+def main(argv):
+    tornado.options.parse_command_line(args=argv)
+    session_factory = make_session_factory(options.dbname)
     Base.metadata.create_all(session_factory._engine)
     for HardwareIoClass in (HydrometerPooler, RelayController):
         tornado.ioloop.IOLoop.current().spawn_callback(hardware_io_loop, HardwareIoClass, session_factory)
@@ -39,4 +41,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

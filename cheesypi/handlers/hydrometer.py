@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 
+from tornado.options import options
 from tornado_sqlalchemy import SessionMixin
 
 from cheesypi.models.SensorData import SensorData
@@ -27,23 +28,23 @@ class HydrometerHandler(BaseHandler, SessionMixin):
                 last = None
 
         with self.make_session() as session:
-            min_date = datetime.utcnow() - settings["hydrometer_time_window"]
+            min_date = datetime.utcnow() - options.hydrometer_time_window
 
             sensor_query = session.query(SensorData).filter(
                 SensorData.timestamp > min_date
             ).filter(
-                SensorData.sensor_id == settings['hydrometer_master']
+                SensorData.sensor_id == options.hydrometer_master
             )
             if last is not None:
                 sensor_query = sensor_query.filter(SensorData.timestamp > last)
             sensor_query = sensor_query.order_by(SensorData.timestamp.desc())
-            sensor_data = sensor_query.limit(settings['hydrometer_points']).all()[::-1]
+            sensor_data = sensor_query.limit(options.hydrometer_points).all()[::-1]
 
             event_query = session.query(Event).filter(
                 Event.timestamp > min_date
             )
             event_query = event_query.order_by(Event.timestamp.desc())
-            event_data = event_query.limit(settings['hydrometer_points']).all()[::-1]
+            event_data = event_query.limit(options.hydrometer_points).all()[::-1]
 
             button_label = "OFF"
             button_class = "power-off"
@@ -87,14 +88,14 @@ class HydrometerHandler(BaseHandler, SessionMixin):
                         "y": {
                             "lines": [
                                 {
-                                    "value": settings["temperature_thresholds"].low,
+                                    "value": options.temperature_threshold_low,
                                     "text": "Low threshold",
                                     "axis": "y",
                                     "position": "middle",
                                     "color": "blue",
                                 },
                                 {
-                                    "value": settings["temperature_thresholds"].high,
+                                    "value": options.temperature_threshold_high,
                                     "text": "High threshold",
                                     "axis": "y",
                                     "position": "middle",

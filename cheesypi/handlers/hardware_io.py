@@ -6,6 +6,7 @@ import Adafruit_DHT
 import RPi.GPIO as GPIO
 
 from tornado.gen import coroutine
+from tornado.options import options
 from tornado.log import app_log
 from tornado_sqlalchemy import (
     SessionMixin,
@@ -55,7 +56,7 @@ class HydrometerPooler(HardwareIO):
     Add those values and their timestamp to databse"""
     def __init__(self, *args, **kwargs):
         super(HydrometerPooler, self).__init__(*args, **kwargs)
-        self.sensors = settings["hydrometer_sensors"]
+        self.sensors = options.hydrometer_sensors
         with self.make_session() as session:
             sensor_ids = set(i[0] for i in session.query(Sensor.id).all())
             missing_sensors = set(range(len(self.sensors))) - sensor_ids
@@ -72,7 +73,7 @@ class HydrometerPooler(HardwareIO):
 
     @property
     def delay(self):
-        return settings['hyrdometer_refresh_delay']
+        return options.hydrometer_refresh_delay
 
     @coroutine
     def execute(self):
@@ -87,8 +88,8 @@ class HydrometerPooler(HardwareIO):
                     "%s measured %.2f degrees and %.2f%% humidity" %
                     (sensor.name, temp, hum)
                 )
-                if (settings["humidity_acceptable_values"].low > hum or
-                        settings["humidity_acceptable_values"].high < hum):
+                if (options.humidity_acceptable_values_low > hum or
+                        options.humidity_acceptable_values_high < hum):
                     app_log.warn("Measured impossible humidity (%f), discarding" % hum)
                     continue
                 data = SensorData(
@@ -106,7 +107,7 @@ class RelayController(HardwareIO):
     Activate or deactivate relay based on thresholds"""
     def __init__(self, *args, **kwargs):
         super(RelayController, self).__init__(*args, **kwargs)
-        self.channel = settings["relay_gpio_channel"]
+        self.channel = options.relay_gpio_channel
         self.active = False
 
     def __enter__(self):
@@ -122,7 +123,7 @@ class RelayController(HardwareIO):
 
     @property
     def delay(self):
-        return settings['relay_refresh_delay']
+        return options.relay_refresh_delay
 
     def mark_event(self, type_):
         with self.make_session() as session:
@@ -154,13 +155,13 @@ class RelayController(HardwareIO):
 
     @coroutine
     def execute(self):
-        high_threshold = settings["temperature_thresholds"].high
-        low_threshold = settings["temperature_thresholds"].low
+        high_threshold = options.temperature_threshold_high
+        low_threshold = options.temperature_threshold_low
         assert(high_threshold > low_threshold)
         temp = None
         with self.make_session() as session:
             data_query = session.query(SensorData)
-            data_query = data_query.filter(SensorData.sensor_id == settings['hydrometer_master'])
+            data_query = data_query.filter(SensorData.sensor_id == options.hydrometer_master)
             data = data_query.order_by(SensorData.timestamp.desc()).first()
             if data is not None:
                 temp = data.temperature
